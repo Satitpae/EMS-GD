@@ -14,9 +14,16 @@ function randomSequence(seed){
   return ()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
 }
 
-function loadKw(profile,intervalMidpoint,random){
+function loadKw(profile,intervalMidpoint,random,solarWeather){
   if(profile==='reference')return 10;
   const hour=intervalMidpoint.getUTCHours()+intervalMidpoint.getUTCMinutes()/60;
+  if(profile==='solar'){
+    if(hour<6||hour>=18)return 0;
+    const weather=solarWeather[intervalMidpoint.getUTCDate()-1];
+    const daylight=Math.sin((hour-6)/12*Math.PI);
+    const cloudDip=weather.cloudDepth*Math.exp(-(((hour-weather.cloudHour)/weather.cloudWidth)**2));
+    return 50*Math.pow(daylight,weather.shape)*weather.irradiance*(1-cloudDip);
+  }
   const weekday=intervalMidpoint.getUTCDay();
   const working=weekday!==0&&weekday!==6;
   const noise=random()*2-1;
@@ -43,7 +50,7 @@ export function generateMeter({year=2026,month=9,meter='SIM_OFFICE_',profile='of
   if(!Number.isInteger(year)||year<2000||year>2099)throw Error('year must be 2000–2099');
   if(!Number.isInteger(month)||month<1||month>12)throw Error('month must be 1–12');
   if(typeof meter!=='string'||!/^SIM_[A-Z0-9_]+$/.test(meter))throw Error('meter must use a SIM_ prefix and A–Z, 0–9 or underscore');
-  if(!['reference','office','factory'].includes(profile))throw Error('unknown profile');
+  if(!['reference','office','factory','solar'].includes(profile))throw Error('unknown profile');
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff)throw Error('seed must be an unsigned 32-bit integer');
   if(!Number.isFinite(initialEnergy)||initialEnergy<=0||!Number.isSafeInteger(Math.round(initialEnergy*4000)))throw Error('invalid positive initial register');
   const start=Date.UTC(year,month-1,1),days=new Date(Date.UTC(year,month,0)).getUTCDate();
@@ -56,11 +63,17 @@ export function generateMeter({year=2026,month=9,meter='SIM_OFFICE_',profile='of
 
   const gapSlots=new Set([at(8,12,15),at(8,12,30),at(8,12,45),at(8,13),at(9,9),at(10,22),at(15)]);
   const random=randomSequence(seed),csv=['timestamp_local,demand_kw,energy_register_kwh,synthetic_quality'];
+  // A separate day's weather shapes a smooth, strictly positive daylight curve.
+  // Existing consumption profiles keep their original per-interval random sequence.
+  const solarWeather=profile==='solar'?Array.from({length:days},()=>({
+    irradiance:0.7+random()*0.28,shape:1+random()*0.6,
+    cloudHour:8+random()*8,cloudWidth:0.6+random()*1.6,cloudDepth:random()*0.35
+  })):null;
   // One integer unit is 1/4000 kWh. A 1/1000-kW demand over 15 minutes adds one unit.
   let registerUnits=Math.round(initialEnergy*4000),physicalUnits=0,missing=0,lastValid='';
   for(let i=0;i<=intervals;i++){
     const timestamp=new Date(start+i*STEP_MS);
-    const demandMilli=Math.round(loadKw(profile,new Date(timestamp.getTime()-STEP_MS/2),random)*1000);
+    const demandMilli=Math.round(loadKw(profile,new Date(timestamp.getTime()-STEP_MS/2),random,solarWeather)*1000);
     if(i>0){registerUnits+=demandMilli;physicalUnits+=demandMilli;}
     const reset=issues&&i===at(18,14,30);
     if(reset)registerUnits=200*4000;
@@ -74,10 +87,11 @@ export function generateMeter({year=2026,month=9,meter='SIM_OFFICE_',profile='of
   }
   const filename=`${meter}${MONTHS[month-1]}${String(year).slice(-2)}.tou`;
   return {filename,bytes,rawCsv:csv.join('\r\n')+'\r\n',metadata:{
-    synthetic:true,profile,seed,period:`${year}-${pad(month)}`,records:intervals+1,bytes:bytes.length,
+    synthetic:true,profile,seed,sourceRole:profile==='solar'?'solar-generation':'grid-import',
+    ...(profile==='solar'?{capacityKw:50}:{}),period:`${year}-${pad(month)}`,records:intervals+1,bytes:bytes.length,
     firstReading:localLabel(new Date(start)),lastValidReading:lastValid,missingRows:missing,
     initialEnergyKwh:Math.round(initialEnergy*4000)/4000,fullMonthEnergyKwh:physicalUnits/4000,
-    fullMonthEnergyMeaning:'Underlying simulated consumption including hidden readings; this is not a recoverable TOU report total for the issue scenario.',
+    fullMonthEnergyMeaning:profile==='solar'?'Simulated solar generation from the cumulative generation-register delta.':'Underlying simulated consumption including hidden readings; this is not a recoverable TOU report total for the issue scenario.',
     events:issues?[
       {time:'day 08 12:15–13:00',type:'interior_gap'},
       {time:'day 09 09:00',type:'missing_switching_boundary'},
@@ -106,13 +120,14 @@ export async function writeSamples(outputDir){
     {meter:'SIM_REFERENCE_',profile:'reference',initialEnergy:100000,seed:20260901},
     {meter:'SIM_OFFICE_',profile:'office',initialEnergy:100000,seed:20260901},
     {meter:'SIM_FACTORY_',profile:'factory',initialEnergy:500000,seed:20260902},
-    {meter:'SIM_ISSUES_',profile:'office',initialEnergy:100000,seed:20260901,issues:true}
+    {meter:'SIM_ISSUES_',profile:'office',initialEnergy:100000,seed:20260901,issues:true},
+    {meter:'SIM_SOLAR_',profile:'solar',initialEnergy:5000,seed:20260903}
   ];
   const manifest={synthetic:true,title:'EMS GD simulated TOU samples',period:'2026-09',
     intervalMinutes:15,demandUnit:'kW',energyUnit:'cumulative kWh',
     timestampConvention:'Nominal meter wall time (assumed Asia/Bangkok for these synthetic files); no UTC conversion is encoded in TOUReg.',
     energyConvention:'Demand at a timestamp is the average kW for the preceding 15-minute interval. Energy register at that timestamp includes that interval. Row 0 is the initial register.',
-    warning:'All files are synthetic. Do not use for billing. Profiles are separate examples; do not sum them as one site.',
+    warning:'All files are synthetic. Do not use for billing. SIM_OFFICE and SIM_SOLAR form the paired grid-import + solar-generation demo. Other profiles are separate examples; do not sum them as one site.',
     referenceExpected:{fullMonthRegisterDeltaKwh:7200,dashboardEnergyKwh:[2417.5,2860,1920,7197.5],
       dashboardEnergyOrder:['OffPeak','OnPeak','Holiday','Total'],dashboardMaxDemandKw:[10,10,10],
       note:'Dashboard_TOU report policy starts the first day at 00:15, excluding 2.5 kWh. September 2026 has 22 weekdays and 8 weekend holidays.'},files:[]};

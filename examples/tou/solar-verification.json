@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "source": "Satitpae/Dashboard_TOU@903be2a03232142159a7d5b1e6bde6af69480039",
+  "filename": "SIM_SOLAR_Sep26.tou",
+  "sha256": "9a334d7e5e5f1d28093878eab12e07cf4ee17ef8b64aea34b4a358ccb07634cc",
+  "records": 2881,
+  "dailyValuesMatched": 210,
+  "energyKwh": [
+    777.684500000003,
+    5305.059749999997,
+    2400.5210000000006,
+    8483.26525
+  ],
+  "demandKw": [
+    28.784,
+    48.94,
+    47.105
+  ],
+  "incompleteDays": 0
+}

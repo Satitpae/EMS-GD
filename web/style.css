@@ -413,3 +413,33 @@ dialog.modal::backdrop { background: #10273788; backdrop-filter: blur(3px); }
 .modal-card .file-chip span { color: #799286; }
 @media(max-width:1100px){.sidebar-note{display:none}.brand-subtitle{display:none}.filter-meta{display:none}}
 @media(max-width:760px){.page-heading h1{font-size:24px}.notice{align-items:flex-start;font-size:9px;flex-wrap:wrap}.notice .text-button{margin-left:auto}.chart-tabs button{font-size:8px;padding:5px}.insight-item{display:flex}.insight-item+.insight-item{margin-left:0}.topbar-right{gap:12px}.metric-value{font-size:30px}.chart-hint{display:none}.modal-card .file-chip{grid-template-columns:1fr}.footer{flex-wrap:wrap}}
+
+/* Paired MEA import and self-consumed solar generation. */
+.filterbar { flex-wrap: wrap; }
+.filter-field { min-width: 130px; }
+.solar-progress { background: #f7eee1; }
+.solar-progress > span { background: #e0a051; }
+.energy-flow { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px 24px; background: linear-gradient(115deg,#eff5fa,#f1f8f5 52%,#fdf6e9); border: 1px solid #dfe9e7; border-radius: 10px; }
+.flow-source,.flow-building { display: flex; align-items: center; gap: 14px; }
+.flow-symbol { width: 42px; height: 42px; border-radius: 10px; background: #fff9; display: grid; place-items: center; font-size: 28px; color: #7196c6; }
+.flow-source.solar .flow-symbol { color: #d6a04e; }
+.flow-building .flow-symbol { color: #239a84; }
+.energy-flow small { display: block; color: #8a9ba1; font-size: 10px; }
+.energy-flow strong { display: block; color: #39596a; font-size: 17px; margin-top: 2px; }
+.flow-building strong { color: #267f6d; }
+.flow-arrow { color: #a0b8ae; font-size: 29px; font-weight: 300; }
+.balance-assumption { font-size: 9px; color: #95a4ab; margin: 10px 2px 23px; }
+.balance-chart-toolbar { padding: 12px 21px 0; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.balance-chart-toolbar .chart-legend { padding: 0; justify-content: flex-start; }
+.compact-day { font-size: 9px; color: #9aa6ad; display: flex; align-items: center; gap: 7px; }
+.compact-day select { border: 1px solid #e3e9ed; border-radius: 5px; font: inherit; padding: 5px 7px; background: white; color: #6d8291; }
+.balance-coverage { margin: 0 22px 20px; border-top: 1px solid #edf0f3; padding-top: 13px; }
+.balance-coverage > div:first-child { display: flex; justify-content: space-between; font-size: 10px; color: #91a29c; }
+.balance-coverage strong { color: #359680; }
+.coverage-track { margin-top: 8px; height: 4px; border-radius: 4px; overflow: hidden; background: #eef3f0; }
+.coverage-track span { display: block; height: 100%; background: #5cbda3; }
+.balance-coverage p { font-size: 9px; color: #a1ada7; margin: 7px 0 0; }
+.donut-center .donut-percent { display: inline; font-size: 12px; color: #8b9b95; margin-left: 2px; }
+.solar-number { color: #bb8a3e; }
+@media(max-width:1100px){.energy-flow{gap:10px;padding:16px}.energy-flow strong{font-size:15px}.flow-symbol{width:33px;height:33px;font-size:23px}}
+@media(max-width:760px){.energy-flow{flex-wrap:wrap;gap:12px;padding:16px}.flow-source,.flow-building{flex:1;min-width:115px;gap:9px}.flow-arrow{display:none}.flow-building{order:3;flex-basis:100%;border-top:1px solid #dce9df;padding-top:12px}.flow-source.solar{order:2}.flow-source.grid{order:1}.balance-chart-toolbar{padding:12px 16px 0;flex-wrap:wrap}.balance-assumption{font-size:9px;line-height:1.8}.compact-day{margin-left:auto}.chart-tooltip{white-space:normal;max-width:calc(100% - 36px)}}

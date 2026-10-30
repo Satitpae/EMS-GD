@@ -1,0 +1,18 @@
+{
+  "synthetic": true,
+  "assumption": "MEA import + all solar generation self-consumed; no export or battery",
+  "firstDayBaseline": "00:15",
+  "gridKwh": 21264.163749999992,
+  "solarKwh": 8483.26525,
+  "loadKwh": 29747.428999999993,
+  "solarSharePct": 28.51764181032251,
+  "gridPeakKw": 72.596,
+  "solarPeakKw": 48.94,
+  "loadPeakKw": 120.67599999999999,
+  "peakAt": "2026-09-09 12:00",
+  "validIntervals": 2879,
+  "expectedIntervals": 2879,
+  "incompleteDays": 0,
+  "completeDays": 30,
+  "coveragePct": 100
+}

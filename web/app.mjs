@@ -1,9 +1,10 @@
 import {parseTou,analyzeTou} from './tou-engine.mjs';
+import {initializeBalanceView,renderBalanceDashboard,clearBalanceDashboard,balanceCsvRows} from './balance-view.mjs';
 
 const $=id=>document.getElementById(id);
 const datasets=new Map();
-const names=['SIM_OFFICE_Sep26.tou','SIM_FACTORY_Sep26.tou','SIM_REFERENCE_Sep26.tou','SIM_ISSUES_Sep26.tou'];
-const labels={SIM_OFFICE:'อาคารสำนักงาน',SIM_FACTORY:'โรงงานอุตสาหกรรม',SIM_REFERENCE:'อ้างอิง · โหลดคงที่ 10 kW',SIM_ISSUES:'ทดสอบ · ข้อมูลผิดปกติ'};
+const names=['SIM_OFFICE_Sep26.tou','SIM_FACTORY_Sep26.tou','SIM_REFERENCE_Sep26.tou','SIM_ISSUES_Sep26.tou','SIM_SOLAR_Sep26.tou'];
+const labels={SIM_OFFICE:'MEA จำลอง · อาคารสำนักงาน',SIM_FACTORY:'โรงงานอุตสาหกรรม',SIM_REFERENCE:'อ้างอิง · โหลดคงที่ 10 kW',SIM_ISSUES:'ทดสอบ · ข้อมูลผิดปกติ',SIM_SOLAR:'Solar จำลอง · 50 kWp'};
 const statusText={complete:'ครบถ้วน',gaps:'มีช่วงข้อมูลขาด','boundary-fallback':'ใช้ขอบเวลาทดแทน',partial:'ข้อมูลบางช่วง',incomplete:'คำนวณไม่ครบ','no-data':'ไม่มีข้อมูล'};
 const colors=['#008c82','#7196c6','#e8b779'];
 const dayPeak=d=>d.status==='no-data'?null:Math.max(d.peakOff??0,d.peakOn??0,d.peakHoliday??0);
@@ -11,10 +12,11 @@ const fmt=(n,d=2)=>n===null||n===undefined||!Number.isFinite(n)?'—':n.toLocale
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=date=>new Date(date+'T00:00:00Z').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric',calendar:'gregory',timeZone:'UTC'});
 const monthLabel=period=>new Date(period+'-01T00:00:00Z').toLocaleDateString('th-TH',{month:'long',year:'numeric',calendar:'gregory',timeZone:'UTC'});
-let page=0,view='overview',chartMode='demand',analysis=null;
+let page=0,view='balance',chartMode='demand',analysis=null;
 
 function showError(message){$('error').textContent=message;$('error').classList.toggle('hidden',!message);}
 function activeDataset(){return [...datasets.values()].find(d=>d.meter===$('meter').value&&d.period===$('period').value);}
+function sourceDataset(id){return [...datasets.values()].find(d=>d.meter===$(id).value&&d.period===$('period').value);}
 function accept(buffer,name){
  const data=parseTou(buffer,name);
  data.synthetic=new TextDecoder().decode(new Uint8Array(buffer).slice(28,64)).includes('SYNTHETIC EMS GD');
@@ -22,25 +24,32 @@ function accept(buffer,name){
 }
 function populate(preferredMeter){
  const previous=preferredMeter||$('meter').value;
+ const previousGrid=$('gridMeter').value,previousSolar=$('solarMeter').value;
  const meters=[...new Set([...datasets.values()].map(d=>d.meter))];
  $('meter').replaceChildren(...meters.map(m=>new Option(labels[m]||m,m)));
  $('meter').value=meters.includes(previous)?previous:meters[0]||'';
+ for(const id of ['gridMeter','solarMeter'])$(id).replaceChildren(new Option(id==='solarMeter'?'เลือกมิเตอร์ Solar':'เลือกมิเตอร์ไฟซื้อเข้า',''),...meters.map(m=>new Option(labels[m]||m,m)));
+ $('gridMeter').value=meters.includes(previousGrid)?previousGrid:meters.includes('SIM_OFFICE')?'SIM_OFFICE':meters.find(m=>m!=='SIM_SOLAR')||'';
+ $('solarMeter').value=meters.includes(previousSolar)?previousSolar:meters.includes('SIM_SOLAR')?'SIM_SOLAR':'';
  populatePeriods();
 }
 function populatePeriods(){
  const old=$('period').value;
- const periods=[...new Set([...datasets.values()].filter(d=>d.meter===$('meter').value).map(d=>d.period))].sort();
+ let periods=[...new Set([...datasets.values()].filter(d=>d.meter===(view==='balance'?$('gridMeter').value:$('meter').value)).map(d=>d.period))].sort();
+ if(view==='balance')periods=periods.filter(p=>[...datasets.values()].some(d=>d.meter===$('solarMeter').value&&d.period===p));
  $('period').replaceChildren(...periods.map(p=>new Option(monthLabel(p),p)));
  $('period').value=periods.includes(old)?old:periods.at(-1)||'';
  resetDates();
 }
 function resetDates(){
- const data=activeDataset();if(!data)return;
+ const data=view==='balance'?sourceDataset('gridMeter'):activeDataset();
+ if(!data){if(view==='balance'){clearBalanceDashboard();showError('ไม่พบเดือนที่ตรงกัน กรุณาเลือกไฟล์ MEA และ Solar ที่เป็นเดือนเดียวกัน');$('dataRange').textContent='ยังไม่มีคู่ข้อมูล';$('downloadReport').disabled=true;}return;}
  const start=data.period+'-01',end=data.period+'-'+String(new Date(Date.UTC(data.year,data.month,0)).getUTCDate()).padStart(2,'0');
  for(const [id,value]of [['from',start],['to',end]]){$(id).min=start;$(id).max=end;$(id).value=value;}
  page=0;render();
 }
 function render(){
+ if(view==='balance'){renderSources();return;}
  const data=activeDataset();if(!data)return;
  const from=$('from').value,to=$('to').value;
  if(!from||!to||from>to){showError('กรุณาเลือกช่วงวันที่ให้ถูกต้อง โดยวันเริ่มต้นไม่เกินวันสิ้นสุด');return;}
@@ -75,6 +84,24 @@ function render(){
  if(analysis.days.some(d=>d.date===oldDay))$('rawDay').value=oldDay;
  renderRaw();
  $('downloadReport').disabled=!analysis.days.length;$('downloadRaw').disabled=!analysis.rows.length;
+}
+function renderSources(){
+ const grid=sourceDataset('gridMeter'),solar=sourceDataset('solarMeter');
+ if(!grid||!solar){clearBalanceDashboard();showError('กรุณาเลือกไฟล์ MEA และ Solar ที่เป็นเดือนเดียวกัน');$('downloadReport').disabled=true;return;}
+ if(grid.meter===solar.meter){clearBalanceDashboard();showError('กรุณาเลือกมิเตอร์ MEA และ Solar คนละตัว');$('downloadReport').disabled=true;return;}
+ const from=$('from').value,to=$('to').value;
+ if(!from||!to||from>to){clearBalanceDashboard('ช่วงวันที่ไม่ถูกต้อง');showError('กรุณาเลือกช่วงวันที่ให้ถูกต้อง โดยวันเริ่มต้นไม่เกินวันสิ้นสุด');$('downloadReport').disabled=true;return;}
+ try{
+  const data=renderBalanceDashboard(grid,solar,{from,to});
+  showError('');
+  const synthetic=grid.synthetic&&solar.synthetic;
+  $('modeLabel').textContent=synthetic?'MEA + Solar จำลอง':'MEA + Solar';
+  $('sampleDescription').textContent=synthetic?'เปรียบเทียบไฟซื้อเข้าจาก MEA กับ Solar 50 kWp — ข้อมูลสร้างขึ้นเพื่อทดลอง':'กำลังใช้สองไฟล์ตามบทบาทที่เลือก โดยสมมติ Solar ใช้เองทั้งหมดและไม่มีส่งไฟคืน';
+  $('sourceFooter').textContent=synthetic?'MEA + Solar · ข้อมูลจำลอง':'MEA + Solar · ประมวลผลในเบราว์เซอร์';
+  $('sampleNotice').classList.toggle('imported',!synthetic);
+  $('dataRange').textContent=`จับคู่ได้ ${fmt(data.coveragePct,1)}%`;
+  $('downloadReport').disabled=!data.days.length;
+ }catch(error){clearBalanceDashboard();showError(error.message);$('downloadReport').disabled=true;}
 }
 function spark(id,values,color){
  const valid=values.filter(v=>v!==null),max=Math.max(1,...valid),min=Math.min(0,...valid);
@@ -127,27 +154,30 @@ function renderRaw(){
  $('rawCount').textContent=`${rows.length} แถว · ${esc(activeDataset()?.name||'')}`;
 }
 function changeView(next){
- view=['overview','readings','reports'].includes(next)?next:'overview';page=0;
- const title={overview:'ภาพรวมการใช้พลังงาน',readings:'ข้อมูลจากมิเตอร์',reports:'รายงาน TOU'}[view];
+ view=['balance','overview','readings','reports'].includes(next)?next:'balance';page=0;
+ const title={balance:'พลังงาน MEA + Solar',overview:'ภาพรวมรายมิเตอร์',readings:'ข้อมูลจากมิเตอร์',reports:'รายงาน TOU'}[view];
  $('pageTitle').textContent=title;$('breadcrumb').textContent=title;
- $('pageSubtitle').textContent={overview:'รู้ทันการใช้ไฟฟ้า มองเห็นทุกช่วงเวลาของพลังงาน',readings:'ตรวจค่า Demand และพลังงานสะสมทุก 15 นาที',reports:'ตรวจการใช้พลังงานและ Demand แยกตามช่วงเวลา TOU'}[view];
- $('overviewSection').classList.toggle('hidden',view!=='overview');$('dailySection').classList.toggle('hidden',view==='readings');$('rawSection').classList.toggle('hidden',view!=='readings');
- document.querySelectorAll('[data-view]').forEach(a=>{a.classList.toggle('active',a.dataset.view===view);if(a.dataset.view===view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});renderDaily();
+ $('pageSubtitle').textContent={balance:'ดูไฟซื้อเข้า การผลิต Solar และการใช้พลังงานของอาคารในหน้าเดียว',overview:'รู้ทันการใช้ไฟฟ้า มองเห็นทุกช่วงเวลาของพลังงาน',readings:'ตรวจค่า Demand และพลังงานสะสมทุก 15 นาที',reports:'ตรวจการใช้พลังงานและ Demand แยกตามช่วงเวลา TOU'}[view];
+ $('balanceSection').classList.toggle('hidden',view!=='balance');$('overviewSection').classList.toggle('hidden',view!=='overview');$('dailySection').classList.toggle('hidden',!['overview','reports'].includes(view));$('rawSection').classList.toggle('hidden',view!=='readings');
+ for(const id of ['gridField','solarField'])$(id).classList.toggle('hidden',view!=='balance');$('singleField').classList.toggle('hidden',view==='balance');
+ document.querySelectorAll('[data-view]').forEach(a=>{a.classList.toggle('active',a.dataset.view===view);if(a.dataset.view===view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+ if(datasets.size)populatePeriods();
 }
 function download(rows,name){
  const csv='\ufeff'+rows.map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');
  const link=document.createElement('a'),url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-$('downloadReport').onclick=()=>{if(!analysis)return;download([['Meter','Date','OffPeak kWh','OnPeak kWh','Holiday kWh','Total kWh','Max Demand OffPeak kW','Max Demand OnPeak kW','Max Demand Holiday kW','Status'],...analysis.days.map(d=>[analysis.meter,d.date,d.offpeak,d.onpeak,d.holiday,d.total,d.peakOff,d.peakOn,d.peakHoliday,statusText[d.status]]),[analysis.meter,'TOTAL',analysis.energy.offpeak,analysis.energy.onpeak,analysis.energy.holiday,analysis.energy.total,'','','',`${analysis.incompleteDays} flagged days`]],`EMS-GD-${analysis.meter}-${analysis.period}.csv`);};
+$('downloadReport').onclick=()=>{if(view==='balance'){const rows=balanceCsvRows();if(rows.length)download(rows,`EMS-GD-MEA-Solar-${$('period').value}.csv`);return;}if(!analysis)return;download([['Meter','Date','OffPeak kWh','OnPeak kWh','Holiday kWh','Total kWh','Max Demand OffPeak kW','Max Demand OnPeak kW','Max Demand Holiday kW','Status'],...analysis.days.map(d=>[analysis.meter,d.date,d.offpeak,d.onpeak,d.holiday,d.total,d.peakOff,d.peakOn,d.peakHoliday,statusText[d.status]]),[analysis.meter,'TOTAL',analysis.energy.offpeak,analysis.energy.onpeak,analysis.energy.holiday,analysis.energy.total,'','','',`${analysis.incompleteDays} flagged days`]],`EMS-GD-${analysis.meter}-${analysis.period}.csv`);};
 $('downloadRaw').onclick=()=>{if(analysis)download([['Meter','Date','Time','Demand kW','Energy register kWh','Missing'],...analysis.rows.map(r=>[analysis.meter,r.date,r.time,r.demand,r.energy,r.missing])],`EMS-GD-raw-${analysis.meter}-${analysis.period}.csv`);};
 $('importButton').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async e=>{const errors=[];let last;for(const file of e.target.files){try{last=accept(await file.arrayBuffer(),file.name);}catch(error){errors.push(`${file.name}: ${error.message}`);}}if(last)populate(last.meter);showError(errors.join(' · '));e.target.value='';};
-$('meter').onchange=populatePeriods;$('period').onchange=resetDates;$('resetFilters').onclick=resetDates;
+$('meter').onchange=populatePeriods;$('gridMeter').onchange=populatePeriods;$('solarMeter').onchange=populatePeriods;$('period').onchange=resetDates;$('resetFilters').onclick=resetDates;
 for(const id of ['from','to'])$(id).onchange=()=>{page=0;render();};
 $('rawDay').onchange=renderRaw;$('prevPage').onclick=()=>{page--;renderDaily();};$('nextPage').onclick=()=>{page++;renderDaily();};
 document.querySelectorAll('[data-chart]').forEach(button=>button.onclick=()=>{chartMode=button.dataset.chart;document.querySelectorAll('[data-chart]').forEach(b=>b.classList.toggle('active',b===button));drawMainChart();});
 $('aboutButton').onclick=()=>$('aboutDialog').showModal();$('closeDialog').onclick=()=>$('aboutDialog').close();
 $('aboutDialog').onclick=e=>{if(e.target===$('aboutDialog'))$('aboutDialog').close();};
+initializeBalanceView();
 window.addEventListener('hashchange',()=>changeView(location.hash.slice(1)));changeView(location.hash.slice(1));
 await Promise.all(names.map(async name=>{try{const response=await fetch(`./samples/${name}`);if(!response.ok)throw Error(String(response.status));accept(await response.arrayBuffer(),name);}catch(error){console.error('Sample unavailable',name,error);}}));
 if(datasets.size){populate('SIM_OFFICE');}else{showError('โหลดข้อมูลตัวอย่างไม่สำเร็จ คุณยังเลือกนำเข้าไฟล์ .tou ได้ด้วยปุ่มด้านบน');$('sampleDescription').textContent='เลือกไฟล์ .tou เพื่อเริ่มดูข้อมูล';}

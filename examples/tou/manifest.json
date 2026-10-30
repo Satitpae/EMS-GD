@@ -7,7 +7,7 @@
   "energyUnit": "cumulative kWh",
   "timestampConvention": "Nominal meter wall time (assumed Asia/Bangkok for these synthetic files); no UTC conversion is encoded in TOUReg.",
   "energyConvention": "Demand at a timestamp is the average kW for the preceding 15-minute interval. Energy register at that timestamp includes that interval. Row 0 is the initial register.",
-  "warning": "All files are synthetic. Do not use for billing. Profiles are separate examples; do not sum them as one site.",
+  "warning": "All files are synthetic. Do not use for billing. SIM_OFFICE and SIM_SOLAR form the paired grid-import + solar-generation demo. Other profiles are separate examples; do not sum them as one site.",
   "referenceExpected": {
     "fullMonthRegisterDeltaKwh": 7200,
     "dashboardEnergyKwh": [
@@ -37,6 +37,7 @@
       "synthetic": true,
       "profile": "reference",
       "seed": 20260901,
+      "sourceRole": "grid-import",
       "period": "2026-09",
       "records": 2881,
       "bytes": 46160,
@@ -55,6 +56,7 @@
       "synthetic": true,
       "profile": "office",
       "seed": 20260901,
+      "sourceRole": "grid-import",
       "period": "2026-09",
       "records": 2881,
       "bytes": 46160,
@@ -73,6 +75,7 @@
       "synthetic": true,
       "profile": "factory",
       "seed": 20260902,
+      "sourceRole": "grid-import",
       "period": "2026-09",
       "records": 2881,
       "bytes": 46160,
@@ -91,6 +94,7 @@
       "synthetic": true,
       "profile": "office",
       "seed": 20260901,
+      "sourceRole": "grid-import",
       "period": "2026-09",
       "records": 2881,
       "bytes": 46160,
@@ -126,6 +130,26 @@
           "type": "not_yet_recorded"
         }
       ]
+    },
+    {
+      "filename": "SIM_SOLAR_Sep26.tou",
+      "csv": "SIM_SOLAR_Sep26.csv",
+      "sha256": "9a334d7e5e5f1d28093878eab12e07cf4ee17ef8b64aea34b4a358ccb07634cc",
+      "synthetic": true,
+      "profile": "solar",
+      "seed": 20260903,
+      "sourceRole": "solar-generation",
+      "capacityKw": 50,
+      "period": "2026-09",
+      "records": 2881,
+      "bytes": 46160,
+      "firstReading": "2026-09-01 00:00",
+      "lastValidReading": "2026-10-01 00:00",
+      "missingRows": 0,
+      "initialEnergyKwh": 5000,
+      "fullMonthEnergyKwh": 8483.26525,
+      "fullMonthEnergyMeaning": "Simulated solar generation from the cumulative generation-register delta.",
+      "events": []
     }
   ]
 }
