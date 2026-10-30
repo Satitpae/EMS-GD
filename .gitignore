@@ -1,0 +1,21 @@
+# Local readings and generated reports
+*.[tT][oO][uU]
+!/examples/tou/SIM_*_Sep26.tou
+/data/
+/reports/
+/exports/
+/simulated-data/
+*.zip
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and OS files
+node_modules/
+__pycache__/
+.venv/
+.DS_Store
+Thumbs.db
+*.log

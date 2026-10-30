@@ -1,0 +1,131 @@
+{
+  "synthetic": true,
+  "title": "EMS GD simulated TOU samples",
+  "period": "2026-09",
+  "intervalMinutes": 15,
+  "demandUnit": "kW",
+  "energyUnit": "cumulative kWh",
+  "timestampConvention": "Nominal meter wall time (assumed Asia/Bangkok for these synthetic files); no UTC conversion is encoded in TOUReg.",
+  "energyConvention": "Demand at a timestamp is the average kW for the preceding 15-minute interval. Energy register at that timestamp includes that interval. Row 0 is the initial register.",
+  "warning": "All files are synthetic. Do not use for billing. Profiles are separate examples; do not sum them as one site.",
+  "referenceExpected": {
+    "fullMonthRegisterDeltaKwh": 7200,
+    "dashboardEnergyKwh": [
+      2417.5,
+      2860,
+      1920,
+      7197.5
+    ],
+    "dashboardEnergyOrder": [
+      "OffPeak",
+      "OnPeak",
+      "Holiday",
+      "Total"
+    ],
+    "dashboardMaxDemandKw": [
+      10,
+      10,
+      10
+    ],
+    "note": "Dashboard_TOU report policy starts the first day at 00:15, excluding 2.5 kWh. September 2026 has 22 weekdays and 8 weekend holidays."
+  },
+  "files": [
+    {
+      "filename": "SIM_REFERENCE_Sep26.tou",
+      "csv": "SIM_REFERENCE_Sep26.csv",
+      "sha256": "44f973b1723ec53d3ca7938229eb7210d13c1d18ffba1842298fadca03735f81",
+      "synthetic": true,
+      "profile": "reference",
+      "seed": 20260901,
+      "period": "2026-09",
+      "records": 2881,
+      "bytes": 46160,
+      "firstReading": "2026-09-01 00:00",
+      "lastValidReading": "2026-10-01 00:00",
+      "missingRows": 0,
+      "initialEnergyKwh": 100000,
+      "fullMonthEnergyKwh": 7200,
+      "fullMonthEnergyMeaning": "Underlying simulated consumption including hidden readings; this is not a recoverable TOU report total for the issue scenario.",
+      "events": []
+    },
+    {
+      "filename": "SIM_OFFICE_Sep26.tou",
+      "csv": "SIM_OFFICE_Sep26.csv",
+      "sha256": "ccdb2e89df3710abfe24bf9f3d772179b79048f37b05d1d16cf9651953e6da40",
+      "synthetic": true,
+      "profile": "office",
+      "seed": 20260901,
+      "period": "2026-09",
+      "records": 2881,
+      "bytes": 46160,
+      "firstReading": "2026-09-01 00:00",
+      "lastValidReading": "2026-10-01 00:00",
+      "missingRows": 0,
+      "initialEnergyKwh": 100000,
+      "fullMonthEnergyKwh": 21266.97025,
+      "fullMonthEnergyMeaning": "Underlying simulated consumption including hidden readings; this is not a recoverable TOU report total for the issue scenario.",
+      "events": []
+    },
+    {
+      "filename": "SIM_FACTORY_Sep26.tou",
+      "csv": "SIM_FACTORY_Sep26.csv",
+      "sha256": "8d3ce7cf2f9694821b3dc9d1f3f230c49ddbbff2e6bee3a9a295cda879a5e590",
+      "synthetic": true,
+      "profile": "factory",
+      "seed": 20260902,
+      "period": "2026-09",
+      "records": 2881,
+      "bytes": 46160,
+      "firstReading": "2026-09-01 00:00",
+      "lastValidReading": "2026-10-01 00:00",
+      "missingRows": 0,
+      "initialEnergyKwh": 500000,
+      "fullMonthEnergyKwh": 98294.00575,
+      "fullMonthEnergyMeaning": "Underlying simulated consumption including hidden readings; this is not a recoverable TOU report total for the issue scenario.",
+      "events": []
+    },
+    {
+      "filename": "SIM_ISSUES_Sep26.tou",
+      "csv": "SIM_ISSUES_Sep26.csv",
+      "sha256": "3e3fa5f7e717c77d0957087f97fda9224bcd0fcd089a07276de3edd039ec868b",
+      "synthetic": true,
+      "profile": "office",
+      "seed": 20260901,
+      "period": "2026-09",
+      "records": 2881,
+      "bytes": 46160,
+      "firstReading": "2026-09-01 00:00",
+      "lastValidReading": "2026-09-26 15:00",
+      "missingRows": 427,
+      "initialEnergyKwh": 100000,
+      "fullMonthEnergyKwh": 21266.97025,
+      "fullMonthEnergyMeaning": "Underlying simulated consumption including hidden readings; this is not a recoverable TOU report total for the issue scenario.",
+      "events": [
+        {
+          "time": "day 08 12:15–13:00",
+          "type": "interior_gap"
+        },
+        {
+          "time": "day 09 09:00",
+          "type": "missing_switching_boundary"
+        },
+        {
+          "time": "day 10 22:00",
+          "type": "missing_switching_boundary"
+        },
+        {
+          "time": "day 15 00:00",
+          "type": "missing_midnight"
+        },
+        {
+          "time": "day 18 14:30",
+          "type": "counter_reset_to_200_kWh"
+        },
+        {
+          "time": "after day 26 15:00",
+          "type": "not_yet_recorded"
+        }
+      ]
+    }
+  ]
+}

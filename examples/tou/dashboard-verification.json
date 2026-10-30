@@ -1,0 +1,196 @@
+{
+  "synthetic": true,
+  "compatibilitySource": "Satitpae/Dashboard_TOU@903be2a03232142159a7d5b1e6bde6af69480039",
+  "checkedWith": "Unmodified parseTou, dailyTou, totalTou",
+  "referenceMatchesIndependentExpected": true,
+  "warning": "Flagged-day totals sum known values only and must not be treated as complete consumption.",
+  "files": [
+    {
+      "filename": "SIM_REFERENCE_Sep26.tou",
+      "parsedRows": 2880,
+      "boundaryRows": 1,
+      "energyKwh": [
+        2417.5,
+        2860,
+        1920,
+        7197.5
+      ],
+      "maxDemandKw": [
+        10,
+        10,
+        10
+      ],
+      "flaggedDays": 0,
+      "report": "SIM_REFERENCE_Sep26_dashboard_daily.csv",
+      "notableDays": []
+    },
+    {
+      "filename": "SIM_OFFICE_Sep26.tou",
+      "parsedRows": 2880,
+      "boundaryRows": 1,
+      "energyKwh": [
+        4466.6615,
+        14619.23175,
+        2178.2705,
+        21264.16375
+      ],
+      "maxDemandKw": [
+        67.415,
+        72.596,
+        17.8
+      ],
+      "flaggedDays": 0,
+      "report": "SIM_OFFICE_Sep26_dashboard_daily.csv",
+      "notableDays": []
+    },
+    {
+      "filename": "SIM_FACTORY_Sep26.tou",
+      "parsedRows": 2880,
+      "boundaryRows": 1,
+      "energyKwh": [
+        29710.72525,
+        53087.53825,
+        15468.3095,
+        98266.573
+      ],
+      "maxDemandKw": [
+        215.623,
+        264.692,
+        109.873
+      ],
+      "flaggedDays": 0,
+      "report": "SIM_FACTORY_Sep26_dashboard_daily.csv",
+      "notableDays": []
+    },
+    {
+      "filename": "SIM_ISSUES_Sep26.tou",
+      "parsedRows": 2880,
+      "boundaryRows": 1,
+      "energyKwh": [
+        3434.2975,
+        11971.11425,
+        1807.27325,
+        15682.44025
+      ],
+      "maxDemandKw": [
+        67.38,
+        72.596,
+        17.8
+      ],
+      "flaggedDays": 11,
+      "report": "SIM_ISSUES_Sep26_dashboard_daily.csv",
+      "notableDays": [
+        {
+          "date": "2026-09-08",
+          "status": "Energy ครบขอบเวลา / Demand อาจไม่ครบ",
+          "energy": [
+            204.31750000000466,
+            665.0629999999946,
+            0,
+            869.3804999999993
+          ]
+        },
+        {
+          "date": "2026-09-09",
+          "status": "ขอบเวลาขาด: 09:00 ใช้ 08:45",
+          "energy": [
+            188.17350000000442,
+            679.8182499999966,
+            0,
+            867.991750000001
+          ]
+        },
+        {
+          "date": "2026-09-10",
+          "status": "ขอบเวลาขาด: 22:00 ใช้ 21:45",
+          "energy": [
+            204.89250000000175,
+            661.7167499999923,
+            0,
+            866.6092499999941
+          ]
+        },
+        {
+          "date": "2026-09-14",
+          "status": "ข้อมูลไม่ครบ",
+          "energy": [
+            null,
+            662.3172500000073,
+            0,
+            null
+          ]
+        },
+        {
+          "date": "2026-09-15",
+          "status": "ข้อมูลไม่ครบ",
+          "energy": [
+            null,
+            666.1864999999962,
+            0,
+            null
+          ]
+        },
+        {
+          "date": "2026-09-18",
+          "status": "ข้อมูลไม่ครบ",
+          "energy": [
+            201.74100000000453,
+            null,
+            0,
+            null
+          ]
+        },
+        {
+          "date": "2026-09-26",
+          "status": "ข้อมูลถึง 15:00",
+          "energy": [
+            0,
+            0,
+            174.9742500000002,
+            174.9742500000002
+          ]
+        },
+        {
+          "date": "2026-09-27",
+          "status": "ไม่มีข้อมูล",
+          "energy": [
+            0,
+            0,
+            null,
+            null
+          ]
+        },
+        {
+          "date": "2026-09-28",
+          "status": "ไม่มีข้อมูล",
+          "energy": [
+            null,
+            null,
+            0,
+            null
+          ]
+        },
+        {
+          "date": "2026-09-29",
+          "status": "ไม่มีข้อมูล",
+          "energy": [
+            null,
+            null,
+            0,
+            null
+          ]
+        },
+        {
+          "date": "2026-09-30",
+          "status": "ไม่มีข้อมูล",
+          "energy": [
+            null,
+            null,
+            0,
+            null
+          ]
+        }
+      ]
+    }
+  ]
+}

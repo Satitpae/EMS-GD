@@ -1,0 +1,11 @@
+{
+  "name": "ems-gd",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:sample": "node scripts/generate-tou.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {"node": ">=20"}
+}
