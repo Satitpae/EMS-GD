@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "preview": "node scripts/serve-dashboard.mjs",
     "generate:sample": "node scripts/generate-tou.mjs",
     "test": "node --test test/*.test.mjs"
   },

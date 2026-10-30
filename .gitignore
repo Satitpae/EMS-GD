@@ -1,6 +1,7 @@
 # Local readings and generated reports
 *.[tT][oO][uU]
 !/examples/tou/SIM_*_Sep26.tou
+!/web/samples/SIM_*_Sep26.tou
 /data/
 /reports/
 /exports/
